@@ -104,6 +104,17 @@
         </div>
     </header>
 
+    <div id="custom-alert" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full text-center transform transition-all scale-100 animate-fade-in">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-oswald text-gray-900 mb-2 uppercase">Information requise</h3>
+            <p id="custom-alert-message" class="text-gray-600 mb-6 font-georgia"></p>
+            <button onclick="document.getElementById('custom-alert').classList.add('hidden')" class="btn-primary w-full shadow-md">Compris</button>
+        </div>
+    </div>
+
     <main class="flex-grow max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
         <!-- ONGLET 1 : L'ENQUÊTE -->
@@ -129,7 +140,7 @@
                         </div>
                         <div>
                             <label class="form-label">Type d'établissement *</label>
-                            <select name="typeEtablissement" class="form-input" required>
+                            <select name="typeEtablissement" class="form-input" required onchange="toggleTypeEtablissement(this.value)">
                                 <option value="" disabled selected>Sélectionnez...</option>
                                 <option value="Commune">Commune / École primaire</option>
                                 <option value="CuisineCentrale">Cuisine Centrale</option>
@@ -137,8 +148,12 @@
                                 <option value="Lycee">Lycée</option>
                                 <option value="CHU_Hopital">CHU / Hôpital</option>
                                 <option value="EHPAD">EHPAD / Médico-social</option>
-                                <option value="Autre">Autre</option>
+                                <option value="Autre">Autre (à préciser)</option>
                             </select>
+                            <div id="bloc_autre_etablissement" class="hidden mt-3 animate-fade-in">
+                                <label class="text-sm font-bold text-gray-700 block mb-1">Précisez le type :</label>
+                                <input type="text" name="precisionTypeEtablissement" class="form-input text-sm" placeholder="Ex: Centre de loisirs...">
+                            </div>
                         </div>
                         <div>
                             <label class="form-label">Mode de gestion *</label>
@@ -169,6 +184,8 @@
                         B. Équipements Techniques & Achats
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <!-- Surface Froid -->
                         <div class="md:col-span-2">
                             <label class="form-label flex justify-between items-end">
                                 <span>Surface disponible en Froid Positif (+) *<br><span class="text-xs font-normal text-gray-500 font-georgia normal-case">pour stocker les légumes ou légumes transformés.</span></span>
@@ -177,32 +194,92 @@
                             <input type="range" name="surfFroidPositif" min="0" max="100" value="10" class="single-slider mt-2" oninput="document.getElementById('valSurfFroid').innerText = this.value + ' m²'">
                         </div>
 
+                        <!-- Achats Légumes : Volume Global & Répartition -->
                         <div class="md:col-span-2 bg-gray-50 p-5 rounded-xl border border-gray-200">
-                            <label class="form-label text-lg">Sous quelle(s) forme(s) achetez-vous vos légumes frais actuellement ? *</label>
-                            <p class="text-xs text-gray-500 italic mb-3">Cochez les gammes que vous utilisez le plus souvent.</p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-2">
-                                <label class="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-dixLight text-sm font-bold"><input type="checkbox" name="formeAchats" value="1ere_Gamme" class="w-5 h-5 accent-dixLight"> 1ère Gamme</label>
-                                <label class="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-dixLight text-sm font-bold"><input type="checkbox" name="formeAchats" value="2eme_Gamme" class="w-5 h-5 accent-dixLight"> 2ème (Conserves)</label>
-                                <label class="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-dixLight text-sm font-bold"><input type="checkbox" name="formeAchats" value="3eme_Gamme" class="w-5 h-5 accent-dixLight"> 3ème (Surgelés)</label>
-                                <label class="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-dixLight text-sm font-bold border-l-4 border-l-dixLight"><input type="checkbox" name="formeAchats" value="4eme_Gamme" class="w-5 h-5 accent-dixLight"> 4ème (Frais découpé)</label>
-                                <label class="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg cursor-pointer hover:border-dixLight text-sm font-bold"><input type="checkbox" name="formeAchats" value="5eme_Gamme" class="w-5 h-5 accent-dixLight"> 5ème (Sous-vide)</label>
+                            
+                            <!-- Volume Global -->
+                            <div class="mb-6">
+                                <label class="form-label text-lg">Volume global d'achats de LÉGUMES par an *</label>
+                                <p class="text-xs text-gray-500 italic mb-2">Toutes gammes confondues (Bruts, Conserves, Surgelés, 4ème gamme...).</p>
+                                <div class="flex items-center gap-3">
+                                    <input type="number" name="volumeGlobalLegumes" step="0.1" class="form-input font-bold text-xl w-48" placeholder="Ex: 12" min="0" required>
+                                    <span class="font-bold text-gray-700">Tonnes</span>
+                                </div>
+                            </div>
+
+                            <!-- Répartition des gammes (Curseurs 100%) -->
+                            <div class="border-t border-gray-200 pt-6">
+                                <label class="form-label text-lg">Répartition par gamme d'achats (%) *</label>
+                                <p class="text-xs text-gray-500 italic mb-4">Ajustez les curseurs ci-dessous. <strong class="text-red-500">Le total doit obligatoirement atteindre 100%.</strong></p>
+                                
+                                <div class="space-y-4">
+                                    <!-- 1ère Gamme -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                        <span class="w-48 text-sm font-bold text-gray-700">1ère Gamme (Bruts)</span>
+                                        <input type="range" name="pctGamme1" min="0" max="100" value="0" class="single-slider flex-grow" oninput="updateGammesTotal(this)">
+                                        <span id="valGamme1" class="w-12 text-right font-bold text-dixLight">0%</span>
+                                    </div>
+                                    <!-- 2ème Gamme -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                        <span class="w-48 text-sm font-bold text-gray-700">2ème Gamme (Conserves)</span>
+                                        <input type="range" name="pctGamme2" min="0" max="100" value="0" class="single-slider flex-grow" oninput="updateGammesTotal(this)">
+                                        <span id="valGamme2" class="w-12 text-right font-bold text-dixLight">0%</span>
+                                    </div>
+                                    <!-- 3ème Gamme -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                        <span class="w-48 text-sm font-bold text-gray-700">3ème Gamme (Surgelés)</span>
+                                        <input type="range" name="pctGamme3" min="0" max="100" value="0" class="single-slider flex-grow" oninput="updateGammesTotal(this)">
+                                        <span id="valGamme3" class="w-12 text-right font-bold text-dixLight">0%</span>
+                                    </div>
+                                    <!-- 4ème Gamme -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                        <span class="w-48 text-sm font-bold text-dixDark">4ème Gamme (Frais découpé)</span>
+                                        <input type="range" name="pctGamme4" min="0" max="100" value="0" class="single-slider flex-grow" oninput="updateGammesTotal(this)">
+                                        <span id="valGamme4" class="w-12 text-right font-bold text-dixLight">0%</span>
+                                    </div>
+                                    <!-- 5ème Gamme -->
+                                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                        <span class="w-48 text-sm font-bold text-gray-700">5ème Gamme (Sous-vide cuit)</span>
+                                        <input type="range" name="pctGamme5" min="0" max="100" value="0" class="single-slider flex-grow" oninput="updateGammesTotal(this)">
+                                        <span id="valGamme5" class="w-12 text-right font-bold text-dixLight">0%</span>
+                                    </div>
+                                </div>
+
+                                <!-- Jauge Totale Gammes -->
+                                <div id="tracker-gammes" class="mt-6 p-4 rounded-xl border border-red-200 bg-red-50 text-center transition-colors">
+                                    <span class="font-oswald uppercase tracking-widest text-sm text-gray-500 block mb-1">Total de votre répartition</span>
+                                    <div class="text-2xl font-bold font-georgia text-red-600 mb-2">
+                                        <span id="totalGammesValue">0</span> %
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div id="gammes-progress-bar" class="bg-red-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                    </div>
+                                    <p id="tracker-gammes-msg" class="text-xs text-red-700 mt-2 font-bold italic">Veuillez ajuster pour atteindre exactement 100%.</p>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Manuel vs Machine (Curseur unique) -->
                         <div class="md:col-span-2">
                             <label class="form-label text-lg">Comment traitez-vous vos légumes bruts en cuisine ? *</label>
-                            <p class="text-xs text-gray-500 italic mb-4">Évaluez la répartition entre la préparation manuelle et mécanisée.</p>
-                            <div class="flex flex-col gap-3">
-                                <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"><input type="radio" name="traitementLegumes" value="100_Manuel" class="w-5 h-5 accent-dixLight" required> <span class="font-bold text-gray-700">100% Manuel</span></label>
-                                <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"><input type="radio" name="traitementLegumes" value="Majorite_Manuel" class="w-5 h-5 accent-dixLight"> <span class="font-bold text-gray-700">Majoritairement Manuel</span></label>
-                                <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"><input type="radio" name="traitementLegumes" value="Equilibre" class="w-5 h-5 accent-dixLight"> <span class="font-bold text-gray-700">50/50</span></label>
-                                <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"><input type="radio" name="traitementLegumes" value="Majorite_Mecanise" class="w-5 h-5 accent-dixLight"> <span class="font-bold text-gray-700">Majoritairement Mécanisé</span></label>
-                                <label class="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"><input type="radio" name="traitementLegumes" value="100_Mecanise" class="w-5 h-5 accent-dixLight"> <span class="font-bold text-gray-700">100% Mécanisé</span></label>
+                            <p class="text-xs text-gray-500 italic mb-4">Placez le curseur selon votre méthode de travail (de 100% manuel à 100% mécanisé).</p>
+                            
+                            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative pt-10">
+                                <!-- Valeur flottante -->
+                                <div id="valMecanisation" class="absolute top-2 left-1/2 transform -translate-x-1/2 font-bold text-dixLight bg-green-50 px-4 py-1 rounded-full text-lg">
+                                    50% Manuel / 50% Mécanisé
+                                </div>
+                                <input type="range" name="curseurMecanisation" min="0" max="100" step="1" value="50" class="single-slider w-full mt-2" oninput="updateMecanisationLabel(this.value)">
+                                <div class="flex justify-between text-xs font-bold text-gray-500 mt-3 uppercase tracking-wide">
+                                    <span class="flex flex-col items-start"><i data-lucide="hand" class="w-5 h-5 mb-1"></i> 100% Manuel</span>
+                                    <span class="flex flex-col items-end"><i data-lucide="settings" class="w-5 h-5 mb-1"></i> 100% Mécanisé</span>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Matériel Spécifique -->
                         <div class="md:col-span-2 bg-blue-50 p-5 rounded-xl border border-blue-100">
-                            <label class="form-label text-blue-900">Quels équipements spécifiques possédez-vous actuellement ?</label>
+                            <label class="form-label text-blue-900">Quels équipements liés au travail des légumes possédez-vous ?</label>
                             <p class="text-xs text-blue-700 italic mb-4">Cochez les machines à votre disposition (même si peu utilisées).</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                                 <label class="flex items-center gap-2 bg-white p-2 rounded border border-gray-200 text-sm font-bold cursor-pointer hover:border-blue-400"><input type="checkbox" name="equipements" value="Parmentiere" class="w-5 h-5 accent-blue-500"> Parmentière</label>
@@ -214,6 +291,13 @@
                                 <label class="flex items-center gap-2 bg-white p-2 rounded border border-gray-200 text-sm font-bold cursor-pointer hover:border-blue-400"><input type="checkbox" name="equipements" value="Ensacheuse" class="w-5 h-5 accent-blue-500"> Ensacheuse sous-vide</label>
                                 <label class="flex items-center gap-2 bg-white p-2 rounded border border-gray-200 text-sm font-bold cursor-pointer hover:border-blue-400"><input type="checkbox" name="equipements" value="TunnelIQF" class="w-5 h-5 accent-blue-500"> Tunnel IQF</label>
                                 <label class="flex items-center gap-2 bg-white p-2 rounded border border-gray-200 text-sm font-bold cursor-pointer hover:border-blue-400"><input type="checkbox" name="equipements" value="Peseuse" class="w-5 h-5 accent-blue-500"> Peseuse</label>
+                                <!-- Option Autre -->
+                                <label class="flex items-center gap-2 bg-white p-2 rounded border border-gray-200 text-sm font-bold cursor-pointer hover:border-blue-400"><input type="checkbox" name="equipements" value="Autre" class="w-5 h-5 accent-blue-500" onchange="toggleEquipementAutre(this.checked)"> Autre</label>
+                            </div>
+                            <!-- Précision Autre Équipement -->
+                            <div id="bloc_equipement_autre" class="hidden mt-3 animate-fade-in">
+                                <label class="text-sm font-bold text-blue-900 block mb-1">Précisez le matériel :</label>
+                                <input type="text" name="precisionEquipementAutre" class="form-input text-sm border-blue-200" placeholder="Ex: Machine à laver à bulles...">
                             </div>
                         </div>
                     </div>
@@ -251,6 +335,15 @@
                             <label class="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-dixLight shadow-sm"><input type="checkbox" name="determinants4G" value="Equipement" class="w-5 h-5 accent-dixLight"> <span class="font-bold text-gray-700">Absence de matériel adéquat en cuisine</span></label>
                             <label class="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-dixLight shadow-sm"><input type="checkbox" name="determinants4G" value="TerreDechets" class="w-5 h-5 accent-dixLight"> <span class="font-bold text-gray-700">Suppression de la gestion de la terre/déchets</span></label>
                             <label class="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl cursor-pointer hover:border-dixLight shadow-sm"><input type="checkbox" name="determinants4G" value="Rendement" class="w-5 h-5 accent-dixLight"> <span class="font-bold text-gray-700">Rendement matière garanti à 100%</span></label>
+                            
+                            <!-- Option Autre -->
+                            <div class="flex flex-col gap-2 p-4 bg-white border border-gray-200 rounded-xl hover:border-dixLight shadow-sm transition-colors">
+                                <label class="flex items-center gap-3 cursor-pointer">
+                                    <input type="checkbox" name="determinants4G" value="Autre" class="w-5 h-5 accent-dixLight" onchange="toggleDeterminantsAutre(this.checked)"> 
+                                    <span class="font-bold text-gray-700">Autre (à préciser)</span>
+                                </label>
+                                <input type="text" id="bloc_determinant_autre" name="precisionDeterminantsAutre" class="form-input text-sm hidden mt-2" placeholder="Précisez votre raison...">
+                            </div>
                         </div>
                     </div>
 
@@ -260,7 +353,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label class="text-sm font-bold text-gray-700 block mb-2">Choix N°1 (Priorité absolue)</label>
-                                <select name="conditionTop1" class="form-input text-sm font-bold border-dixLight shadow-sm">
+                                <select name="conditionTop1" class="form-input text-sm font-bold border-dixLight shadow-sm" onchange="toggleConditionAutre(this, 'precisionConditionTop1')">
                                     <option value="" disabled selected>Choisir...</option>
                                     <option value="Prix">Prix très compétitif</option>
                                     <option value="Bio">Certification Bio</option>
@@ -269,11 +362,13 @@
                                     <option value="ChoixDecoupes">Large choix de découpes</option>
                                     <option value="Origine">Traçabilité 100% Gard</option>
                                     <option value="Conditionnement">Conditionnement adapté</option>
+                                    <option value="Autre">Autre (à préciser)</option>
                                 </select>
+                                <input type="text" id="precisionConditionTop1" name="precisionConditionTop1" class="form-input text-sm hidden mt-2 border-dixLight" placeholder="Précisez...">
                             </div>
                             <div>
                                 <label class="text-sm font-bold text-gray-700 block mb-2">Choix N°2</label>
-                                <select name="conditionTop2" class="form-input text-sm">
+                                <select name="conditionTop2" class="form-input text-sm" onchange="toggleConditionAutre(this, 'precisionConditionTop2')">
                                     <option value="" disabled selected>Choisir...</option>
                                     <option value="Prix">Prix très compétitif</option>
                                     <option value="Bio">Certification Bio</option>
@@ -282,11 +377,13 @@
                                     <option value="ChoixDecoupes">Large choix de découpes</option>
                                     <option value="Origine">Traçabilité 100% Gard</option>
                                     <option value="Conditionnement">Conditionnement adapté</option>
+                                    <option value="Autre">Autre (à préciser)</option>
                                 </select>
+                                <input type="text" id="precisionConditionTop2" name="precisionConditionTop2" class="form-input text-sm hidden mt-2" placeholder="Précisez...">
                             </div>
                             <div>
                                 <label class="text-sm font-bold text-gray-700 block mb-2">Choix N°3</label>
-                                <select name="conditionTop3" class="form-input text-sm">
+                                <select name="conditionTop3" class="form-input text-sm" onchange="toggleConditionAutre(this, 'precisionConditionTop3')">
                                     <option value="" disabled selected>Choisir...</option>
                                     <option value="Prix">Prix très compétitif</option>
                                     <option value="Bio">Certification Bio</option>
@@ -295,7 +392,9 @@
                                     <option value="ChoixDecoupes">Large choix de découpes</option>
                                     <option value="Origine">Traçabilité 100% Gard</option>
                                     <option value="Conditionnement">Conditionnement adapté</option>
+                                    <option value="Autre">Autre (à préciser)</option>
                                 </select>
+                                <input type="text" id="precisionConditionTop3" name="precisionConditionTop3" class="form-input text-sm hidden mt-2" placeholder="Précisez...">
                             </div>
                         </div>
                     </div>
@@ -323,12 +422,13 @@
                             <span class="font-oswald text-dixDark">D. Besoins ciblés (4ème Gamme)</span>
                         </h2>
                         <p class="text-sm text-gray-600 mb-6 font-georgia italic border-b border-gray-200 pb-4">
-                            Détaillez ici les volumes globaux et spécifiques, ainsi que les types de découpe souhaités.
+                            Détaillez ici les volumes spécifiques en légumes prêts à l'emploi.
                         </p>
 
                         <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 mb-6 flex items-center gap-4">
                             <div class="flex-grow">
-                                <label class="form-label !mb-1 text-dixDark text-lg">Volume global estimé en 4ème gamme par an (tonnes) *</label>
+                                <label class="form-label !mb-1 text-dixDark text-lg">Volume ciblé en 4ème gamme par an (tonnes) *</label>
+                                <p class="text-xs text-gray-500 italic mb-2">Saisissez l'estimation de votre besoin total pour cette gamme spécifique (à la tonne près).</p>
                                 <input type="number" name="volumeGlobal4G" step="0.1" class="form-input font-bold text-xl w-full md:w-1/3" placeholder="Ex: 5" min="0" required oninput="updateVolumeTracker()">
                             </div>
                             <div class="hidden md:flex w-16 h-16 bg-green-50 rounded-full items-center justify-center text-dixLight border border-green-100">
@@ -344,7 +444,7 @@
                                 <div class="flex-grow">
                                     <h4 class="text-sm font-bold uppercase tracking-widest mb-1 opacity-70">Suivi de répartition</h4>
                                     <div class="text-lg font-georgia">
-                                        Détail : <strong id="sum_legumes" class="text-2xl">0</strong> t sur les <strong id="target_legumes">0</strong> t globales déclarées.
+                                        Détail : <strong id="sum_legumes" class="text-2xl">0</strong> t sur les <strong id="target_legumes">0</strong> t ciblées.
                                     </div>
                                     <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2 mb-1">
                                         <div id="volume-progress-bar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
@@ -416,7 +516,6 @@
                             <textarea name="descriptionReussite" rows="3" class="form-input text-sm" placeholder="Expliquez brièvement comment cela s'est passé..."></textarea>
                         </div>
                         
-                        <!-- LA FAMEUSE CASE À COCHER DE CONSENTEMENT POUR LE CARNET -->
                         <div class="mt-5 pt-4 border-t border-green-200">
                             <label class="flex items-start gap-3 cursor-pointer group">
                                 <input type="checkbox" name="consentementPartage" value="Oui" class="w-5 h-5 mt-0.5 accent-green-600 border-gray-300 rounded shadow-sm focus:ring-green-500">
@@ -436,9 +535,16 @@
                             <label class="flex items-center gap-3 bg-white p-3 border border-gray-300 rounded-xl cursor-pointer flex-1 hover:border-dixLight transition-all"><input type="radio" name="entretien" value="Oui" class="w-5 h-5 accent-dixLight" onchange="document.getElementById('contact-box').classList.remove('hidden')"> <span class="font-bold">Oui, avec plaisir</span></label>
                             <label class="flex items-center gap-3 bg-white p-3 border border-gray-300 rounded-xl cursor-pointer flex-1 hover:border-dixLight transition-all"><input type="radio" name="entretien" value="Non" class="w-5 h-5 accent-dixLight" onchange="document.getElementById('contact-box').classList.add('hidden')" checked> <span class="text-gray-600">Non, pas pour le moment</span></label>
                         </div>
-                        <div id="contact-box" class="hidden mt-4 pt-4 border-t border-gray-300 grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
-                            <div><label class="form-label text-xs">Nom et Prénom</label><input type="text" name="nomContact" class="form-input text-sm"></div>
-                            <div><label class="form-label text-xs">Téléphone</label><input type="tel" name="telephoneContact" class="form-input text-sm"></div>
+                        <div id="contact-box" class="hidden mt-4 pt-4 border-t border-gray-300 space-y-4 animate-fade-in">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="form-label text-xs">Nom et Prénom</label><input type="text" name="nomContact" class="form-input text-sm"></div>
+                                <div><label class="form-label text-xs">Téléphone</label><input type="tel" name="telephoneContact" class="form-input text-sm"></div>
+                            </div>
+                            <!-- NOUVEAU CHAMP : DISPONIBILITÉS -->
+                            <div>
+                                <label class="form-label text-xs">Vos disponibilités / Créneaux de préférence</label>
+                                <input type="text" name="disponibilitesContact" class="form-input text-sm" placeholder="Ex: Mardi après-midi, Jeudi matin, Lundi entre 14h et 16h...">
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -535,6 +641,12 @@
 
         lucide.createIcons();
 
+        // UI Alert function
+        function customAlert(message) {
+            document.getElementById('custom-alert-message').innerText = message;
+            document.getElementById('custom-alert').classList.remove('hidden');
+        }
+
         // TABS & CARNET D'INITIATIVES
         function switchTab(tabId) {
             document.getElementById('section-enquete').classList.add('hidden');
@@ -546,11 +658,124 @@
             document.getElementById('tab-' + tabId).classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-            // Charger les initiatives si on ouvre la vitrine
             if(tabId === 'vitrine' && !initiativesLoaded) {
                 loadInitiatives();
             }
         }
+
+        // DYNAMIQUE DES NOUVEAUX CHAMPS (PRECISIONS)
+        function toggleTypeEtablissement(val) {
+            const div = document.getElementById('bloc_autre_etablissement');
+            if (val === 'Autre') {
+                div.classList.remove('hidden');
+                div.querySelector('input').setAttribute('required', 'true');
+            } else {
+                div.classList.add('hidden');
+                div.querySelector('input').removeAttribute('required');
+                div.querySelector('input').value = '';
+            }
+        }
+
+        function togglePrestataire(val) {
+            const div = document.getElementById('bloc_prestataire');
+            if (val === 'Concedee') {
+                div.classList.remove('hidden');
+                div.querySelector('input').setAttribute('required', 'true');
+            } else {
+                div.classList.add('hidden');
+                div.querySelector('input').removeAttribute('required');
+                div.querySelector('input').value = '';
+            }
+        }
+
+        function toggleEquipementAutre(isChecked) {
+            const div = document.getElementById('bloc_equipement_autre');
+            if (isChecked) {
+                div.classList.remove('hidden');
+            } else {
+                div.classList.add('hidden');
+                div.querySelector('input').value = '';
+            }
+        }
+
+        function toggleDeterminantsAutre(isChecked) {
+            const input = document.getElementById('bloc_determinant_autre');
+            if (isChecked) {
+                input.classList.remove('hidden');
+            } else {
+                input.classList.add('hidden');
+                input.value = '';
+            }
+        }
+
+        function toggleConditionAutre(selectElement, inputId) {
+            const input = document.getElementById(inputId);
+            if (selectElement.value === 'Autre') {
+                input.classList.remove('hidden');
+                input.setAttribute('required', 'true');
+            } else {
+                input.classList.add('hidden');
+                input.removeAttribute('required');
+                input.value = '';
+            }
+        }
+
+        // JAUGE POUR LES GAMMES 100%
+        function updateGammesTotal(elementChanged) {
+            const g1 = parseInt(document.querySelector('input[name="pctGamme1"]').value) || 0;
+            const g2 = parseInt(document.querySelector('input[name="pctGamme2"]').value) || 0;
+            const g3 = parseInt(document.querySelector('input[name="pctGamme3"]').value) || 0;
+            const g4 = parseInt(document.querySelector('input[name="pctGamme4"]').value) || 0;
+            const g5 = parseInt(document.querySelector('input[name="pctGamme5"]').value) || 0;
+            
+            const total = g1 + g2 + g3 + g4 + g5;
+            
+            // Mise à jour des valeurs textuelles des curseurs
+            document.getElementById('valGamme1').innerText = g1 + '%';
+            document.getElementById('valGamme2').innerText = g2 + '%';
+            document.getElementById('valGamme3').innerText = g3 + '%';
+            document.getElementById('valGamme4').innerText = g4 + '%';
+            document.getElementById('valGamme5').innerText = g5 + '%';
+
+            // Mise à jour de la barre de progression globale
+            document.getElementById('totalGammesValue').innerText = total;
+            const tracker = document.getElementById('tracker-gammes');
+            const pBar = document.getElementById('gammes-progress-bar');
+            const msg = document.getElementById('tracker-gammes-msg');
+
+            let widthPct = total > 100 ? 100 : total;
+            pBar.style.width = widthPct + '%';
+
+            if (total === 100) {
+                tracker.className = "mt-6 p-4 rounded-xl border transition-colors border-green-200 bg-green-50 text-center";
+                document.getElementById('totalGammesValue').className = "text-2xl font-bold font-georgia text-green-600 mb-2";
+                pBar.className = "bg-green-500 h-2 rounded-full transition-all duration-300";
+                msg.className = "text-xs text-green-700 mt-2 font-bold italic";
+                msg.innerText = "Parfait, la répartition atteint 100%.";
+            } else if (total > 100) {
+                tracker.className = "mt-6 p-4 rounded-xl border transition-colors border-red-200 bg-red-50 text-center";
+                document.getElementById('totalGammesValue').className = "text-2xl font-bold font-georgia text-red-600 mb-2";
+                pBar.className = "bg-red-500 h-2 rounded-full transition-all duration-300";
+                msg.className = "text-xs text-red-700 mt-2 font-bold italic";
+                msg.innerHTML = `Le total est dépassé de ${total - 100}%. Veuillez réduire une jauge.`;
+            } else {
+                tracker.className = "mt-6 p-4 rounded-xl border transition-colors border-amber-200 bg-amber-50 text-center";
+                document.getElementById('totalGammesValue').className = "text-2xl font-bold font-georgia text-amber-600 mb-2";
+                pBar.className = "bg-amber-500 h-2 rounded-full transition-all duration-300";
+                msg.className = "text-xs text-amber-700 mt-2 font-bold italic";
+                msg.innerHTML = `Il manque ${100 - total}% pour valider la répartition.`;
+            }
+        }
+
+        // LABEL DYNAMIQUE MECANISATION
+        function updateMecanisationLabel(val) {
+            const label = document.getElementById('valMecanisation');
+            const num = parseInt(val);
+            if (num === 0) label.innerText = "100% Manuel";
+            else if (num === 100) label.innerText = "100% Mécanisé";
+            else label.innerText = (100 - num) + "% Manuel / " + num + "% Mécanisé";
+        }
+
 
         function getThemeStyles(themeValue) {
             const val = (themeValue || '').toLowerCase();
@@ -570,7 +795,7 @@
         };
 
         async function loadInitiatives() {
-            if (GAS_WEB_APP_URL === "VOTRE_URL_GOOGLE_APPS_SCRIPT_ICI") return; // Stoppe si l'URL n'est pas mise
+            if (GAS_WEB_APP_URL === "VOTRE_URL_GOOGLE_APPS_SCRIPT_ICI") return; 
             
             const loader = document.getElementById('vitrine-loader');
             const grid = document.getElementById('initiatives-grid');
@@ -583,7 +808,7 @@
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    allInitiatives = result.data.reverse(); // Les plus récentes en premier
+                    allInitiatives = result.data.reverse(); 
                     renderInitiatives();
                     initiativesLoaded = true;
                 }
@@ -642,19 +867,6 @@
             lucide.createIcons();
         }
 
-        // PRESTATAIRE
-        function togglePrestataire(val) {
-            const div = document.getElementById('bloc_prestataire');
-            if (val === 'Concedee') {
-                div.classList.remove('hidden');
-                div.querySelector('input').setAttribute('required', 'true');
-            } else {
-                div.classList.add('hidden');
-                div.querySelector('input').removeAttribute('required');
-                div.querySelector('input').value = '';
-            }
-        }
-
         // ASSISTANT VOLUME
         function updateVolumeTracker() {
             const globalInput = document.querySelector('input[name="volumeGlobal4G"]');
@@ -706,17 +918,48 @@
             "pdt": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 9C9 3 18 3 21 7C24 11 21 16 17 16C14 16 13 15 11 9Z"/><path d="M4 14C3 8 12 9 17 12C22 15 20 22 14 22C8 22 5 20 4 14Z"/><path d="M14 6v.01M18 9v.01M16 13v.01M8 13v.01M13 15v.01M7 18v.01M15 19v.01" stroke="#549e39" stroke-width="2"/></svg>`,
             "carotte": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6.5L13.5 20c-.3 1.5-2.7 1.5-3 0L9 6.5c-.5-2 3.5-3 6 0z"/><path d="M12 4v2.5M14 3l-1.5 3.5M10 3l1.5 3.5M10.5 11h3M11 15h2" stroke="#549e39"/></svg>`,
             "oignon": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4.5 0-8-3.5-8-8 0-3 2-6 5-8 1-1 2-2 3-2s2 1 3 2c3 2 5 5 5 8 0 4.5-3.5 8-8 8z"/><path d="M12 21v2M10 21l-1.5 1.5M14 21l1.5 1.5M7 13c1.5 4 4.5 6 9 3M12 3v3" stroke="#549e39"/></svg>`,
+            "courge": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="14" rx="9" ry="7"/><ellipse cx="12" cy="14" rx="4" ry="7" stroke="#549e39"/><path d="M12 7v14M12 7V3c1 0 2.5 1 2.5 2" stroke="#549e39"/></svg>`,
             "salade": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c-5 0-9-3-9-8 0-3 1.5-5.5 4-7 1.5-4 5-5 9-3s6 4 6 8c0 5-4 10-10 10z"/><path d="M12 22c-3 0-5-2-5-5 0-1.5 1-3 2.5-4 1-2 2.5-3 4.5-3s3.5 1 4.5 3c1.5 1 2.5 2.5 2.5 4 0 3-2 5-5 5" fill="#549e39" fill-opacity="0.2" stroke="#549e39"/><path d="M12 18v-5M10 15l2-1M14 15l-2-1" stroke="#549e39"/></svg>`,
             "tomate": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4.5 0-8-3.5-8-8 0-4 3.5-7.5 8-7.5s8 3.5 8 7.5c0 4.5-3.5 8-8 8z" stroke="#405F59"/><path d="M12 2v4M9 4.5l3 1.5 3-1.5" stroke="#549e39"/><path d="M8.5 9.5c1-1 2.5-1.5 3.5-1.5" stroke="#405F59"/></svg>`,
             "courgette": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 18.5c-2-2-2-5 0-7l7-7c2-2 5-2 7 0 2 2 2 5 0 7l-7 7c-2 2-5 2-7 0z"/><path d="M19.5 4.5l2-2M8.5 15.5l3 3M11.5 12.5l3 3M14.5 9.5l3 3" stroke="#549e39"/></svg>`,
+            "aubergine": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 10.5c1.5 2 2.5 4.5 2.5 7.5 0 4.5-3.5 6-7 6s-7-1.5-7-6c0-3 1-5.5 2.5-7.5C9.5 8 10 5 12 5s2.5 3 4.5 5.5z"/><path d="M12 2v3M9 5h6l-1 4-2-1-2 1-1-4z" stroke="#549e39" fill="#549e39" fill-opacity="0.2"/></svg>`,
+            "poivron": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9c0-3 2-4 4-4 1 0 2 .5 2 2 0-1.5 1-2 2-2 2 0 4 1 4 4v8c0 3-2 4-4 4-1 0-2-.5-2-2 0 1.5-1 2-2 2-2 0-4-1-4-4V9z"/><path d="M12 5V2M12 7v12M8 8v10M16 8v10" stroke="#549e39"/></svg>`,
+            "poireau": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13h4v8a2 2 0 0 1-4 0v-8z"/><path d="M10 13V5c-2.5 1-4 4-4 7M12 13V3M14 13V5c2.5 1 4 4 4 7" stroke="#549e39"/></svg>`,
+            "chou": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="11" r="8" fill="#549e39" fill-opacity="0.2" stroke="#405F59"/><path d="M6 16c-2 2-3 4-2 6 2 1 6 1 8 1s6 0 8-1c1-2 0-4-2-6" stroke="#405F59"/><path d="M6 8c3 4 9 4 12 0M5 13c3-4 9-4 14 0M8 18l-1 2M16 18l1 2M12 19v3" stroke="#549e39"/></svg>`,
+            "choufleur": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20c-5 0-7-2-7-5 0-3 2-4 4-4 0-2 2-4 4-4s4 2 4 4c2 0 4 1 4 4 0 3-2 5-7 5z"/><path d="M5 16c-1-3 1-5 4-5M19 16c1-3-1-5-4-5" stroke="#549e39"/><path d="M12 20c-4 0-6-1.5-6-4 0-2 2-3 4-3 0-2 1.5-3 3-3s3 1 3 3c2 0 4 1 4 3 0 2.5-2 4-6 4z" fill="#549e39" fill-opacity="0.2" stroke="#549e39"/><path d="M9 13a2 2 0 0 1 3-1 2 2 0 0 1 3 1" stroke="#549e39"/></svg>`,
+            "brocoli": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 22v-6c-1.5 0-2.5-1-2.5-2M14 22v-6c1.5 0 2.5-1 2.5-2"/><path d="M12 16c-4 0-6-1.5-6-4 0-2 1.5-3 3-3 0-2 1.5-3 3-3s3 1 3 3c1.5 0 3 1 3 3 0 2.5-2 4-6 4z" fill="#549e39" fill-opacity="0.2" stroke="#549e39"/><path d="M12 22v-6M12 14c-1-1.5-1-3 0-4M10 12a1 1 0 0 1 2-1 1 1 0 0 1 2 1" stroke="#549e39"/></svg>`,
+            "haricot_vert": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19c4 4 11 4 16-1 3-3 3-8 1-11"/><path d="M6 21c5 4 13 3 17-2 3-3 3-9 1-13-1-1-3-1-4 0M4 19l2 2" stroke="#405F59"/><path d="M19 5l3-3" stroke="#549e39"/></svg>`,
+            "petit_pois": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18c4.5 2 11.5 0 15.5-6.5M5 20c5.5 3 13 1 17-6.5"/><circle cx="9" cy="16" r="1.5" fill="#549e39" stroke="none"/><circle cx="13" cy="13" r="1.5" fill="#549e39" stroke="none"/><circle cx="16" cy="9" r="1.5" fill="#549e39" stroke="none"/><path d="M19.5 11.5l2-2" stroke="#549e39"/></svg>`,
+            "epinard": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15c-4 0-8-2.5-8-7 0-3 3-5 8-5s8 2 8 5c0 4.5-4 7-8 7z"/><path d="M12 22v-9M9 10l3-2M15 10l-3-2M10 12l2-1.5M14 12l-2-1.5" stroke="#549e39"/></svg>`,
+            "blette": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12C4 11 3 7 5 4C7 1 17 1 19 4C21 7 20 11 15 12Z" fill="#549e39" fill-opacity="0.2" stroke="#405F59"/><path d="M9 12v10M15 12v10M8 22h8" stroke="#405F59"/><path d="M12 22V4M12 10L8 8M12 8l4-2M12 6L9 4" stroke="#549e39"/></svg>`,
+            "celeri": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 22V10M15 22V10M12 22V6"/><path d="M9 10c-1.5-2-3-1-1 1M15 10c1.5-2 3-1 1 1M12 6c-2-2-4-1-1 1M12 6c2-2 4-1 1 1" fill="#549e39" fill-opacity="0.2" stroke="#549e39"/></svg>`,
+            "navet": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18c-4.5 0-7.5-2.5-7.5-7 0-4 3.5-6 7.5-6s7.5 2 7.5 6c0 4.5-3 7-7.5 7z"/><path d="M12 18v4M4.5 11C7 13 11 13 12 11s5-2 7.5 0" stroke="#549e39"/><path d="M12 5V2M10 5l-1-3M14 5l1-3" stroke="#549e39"/></svg>`,
+            "ail": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5c1.5 1.5 3 2.5 5 4 2 1.5 3 4 3 6 0 4-3.5 6-8 6s-8-2-8-6c0-2 1-4.5 3-6 2-1.5 3.5-2.5 5-4z"/><path d="M12 5v15M8 10c0 3 1 6 4 9M16 10c0 3-1 6-4 9M12 5V2" stroke="#549e39"/></svg>`,
             "dyn_default": `<svg viewBox="0 0 24 24" fill="none" stroke="#405F59" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="3" stroke="#549e39"/></svg>`
         };
 
         const listLegumes = [
-            {id:'pdt', icon:'pdt', name:'Pommes de terre'}, {id:'carotte', icon:'carotte', name:'Carottes'}, 
-            {id:'oignon', icon:'oignon', name:'Oignons'}, {id:'salade', icon:'salade', name:'Salades'},
-            {id:'tomate', icon:'tomate', name:'Tomates'}, {id:'courgette', icon:'courgette', name:'Courgettes'}
-        ]; // Tronqué pour l'exemple visuel.
+            {id:'pdt', icon:'pdt', name:'Pommes de terre', pl:'Ex: 2.5'},
+            {id:'carotte', icon:'carotte', name:'Carottes', pl:'Ex: 1'},
+            {id:'oignon', icon:'oignon', name:'Oignons', pl:'Ex: 0.3'},
+            {id:'salade', icon:'salade', name:'Salades (Laitue, Batavia...)', pl:'Ex: 0.4'},
+            {id:'courge', icon:'courge', name:'Courges (Butternut, Potiron)', pl:'Ex: 0.5'},
+            {id:'tomate', icon:'tomate', name:'Tomates', pl:'Ex: 0.6'},
+            {id:'courgette', icon:'courgette', name:'Courgettes', pl:'Ex: 0.4'},
+            {id:'aubergine', icon:'aubergine', name:'Aubergines', pl:'Ex: 0.3'},
+            {id:'poivron', icon:'poivron', name:'Poivrons', pl:'Ex: 0.25'},
+            {id:'poireau', icon:'poireau', name:'Poireaux', pl:'Ex: 0.35'},
+            {id:'chou', icon:'chou', name:'Choux (Blanc, Vert, Rouge)', pl:'Ex: 0.25'},
+            {id:'choufleur', icon:'choufleur', name:'Choux-fleurs', pl:'Ex: 0.2'},
+            {id:'brocoli', icon:'brocoli', name:'Brocolis', pl:'Ex: 0.2'},
+            {id:'haricot_vert', icon:'haricot_vert', name:'Haricots verts', pl:'Ex: 0.4'},
+            {id:'petit_pois', icon:'petit_pois', name:'Petits pois', pl:'Ex: 0.15'},
+            {id:'epinard', icon:'epinard', name:'Épinards', pl:'Ex: 0.25'},
+            {id:'blette', icon:'blette', name:'Blettes', pl:'Ex: 0.15'},
+            {id:'celeri', icon:'celeri', name:'Céleri (Rave ou Branche)', pl:'Ex: 0.1'},
+            {id:'navet', icon:'navet', name:'Navets', pl:'Ex: 0.15'},
+            {id:'ail', icon:'ail', name:'Ail', pl:'Ex: 0.05'}
+        ];
 
         function getIconHtml(iconName, classes) {
             if (customSvgIcons[iconName]) return `<div class="custom-svg-wrapper ${classes}">${customSvgIcons[iconName]}</div>`;
@@ -731,8 +974,8 @@
                         ${isDynamic ? `<input type="text" name="nom_${item.id}" class="form-input !mt-0 py-1.5 px-2 text-sm font-bold w-full" placeholder="Nom du légume...">` : `<span class="font-bold text-gray-800 text-sm">${item.name}</span>`}
                     </div>
                 </td>
-                <td class="p-3 border-b border-gray-100"><input type="number" name="vol_${item.id}" step="0.1" class="form-input !mt-0 py-1.5 px-2 text-sm font-bold text-dixDark bg-green-50 shadow-inner" placeholder="0" oninput="updateVolumeTracker()"></td>
-                <td class="p-3 border-b border-gray-100"><input type="text" name="decoupe_${item.id}" class="form-input !mt-0 py-1.5 px-2 text-sm" placeholder="Ex: Cubes 10mm..."></td>
+                <td class="p-3 border-b border-gray-100"><input type="number" name="vol_${item.id}" step="0.1" class="form-input !mt-0 py-1.5 px-2 text-sm font-bold text-dixDark bg-green-50 shadow-inner" placeholder="${item.pl || '0'}" oninput="updateVolumeTracker()"></td>
+                <td class="p-3 border-b border-gray-100"><input type="text" name="decoupe_${item.id}" class="form-input !mt-0 py-1.5 px-2 text-sm" placeholder="Ex: Cubes 10mm, Râpé, Frites..."></td>
                 <td class="p-3 border-b border-gray-100"><div class="flex items-center justify-center gap-1"><input type="number" name="prix_min_${item.id}" step="0.1" class="form-input !mt-0 py-1.5 px-1 text-sm text-center w-16" placeholder="Min" value="1.5"><span class="text-gray-400">-</span><input type="number" name="prix_max_${item.id}" step="0.1" class="form-input !mt-0 py-1.5 px-1 text-sm text-center w-16" placeholder="Max" value="3.0"></div></td>
                 <td class="p-3 border-b border-gray-100 text-center"><input type="checkbox" name="bio_${item.id}" value="Oui" class="w-5 h-5 accent-dixLight cursor-pointer"></td>
                 <td class="p-3 border-b border-gray-100 text-center"><input type="checkbox" name="egalim_${item.id}" value="Oui" class="w-5 h-5 accent-dixLight cursor-pointer"></td>
@@ -765,6 +1008,14 @@
         // ENVOI (FETCH)
         async function submitData(event) {
             event.preventDefault();
+            
+            // Validation spéciale pour la jauge des 100% de la Section B
+            const totalGammesVal = parseInt(document.getElementById('totalGammesValue').innerText);
+            if (totalGammesVal !== 100) {
+                customAlert("Le total de la répartition par gamme (Section B) doit être exactement égal à 100%. Veuillez ajuster vos curseurs.");
+                return;
+            }
+
             const btn = document.getElementById('submitBtn');
             const msg = document.getElementById('formMessage');
             
@@ -777,14 +1028,12 @@
             const formData = new FormData(form);
             const dataObj = Object.fromEntries(formData.entries());
             
-            // Consolidation cases à cocher
-            dataObj.formeAchats = formData.getAll('formeAchats').join(', ');
+            // Consolidation cases à cocher multiples
             dataObj.equipements = formData.getAll('equipements').join(', ');
             dataObj.determinants4G = formData.getAll('determinants4G').join(', ');
 
             try {
                 if (GAS_WEB_APP_URL !== "VOTRE_URL_GOOGLE_APPS_SCRIPT_ICI") {
-                    // Méthode no-cors pour s'assurer que ça passe les blocages de sécurité des navigateurs
                     await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
@@ -796,8 +1045,16 @@
                 }
 
                 form.reset();
-                initiativesLoaded = false; // Force le rafraîchissement du carnet
+                initiativesLoaded = false; 
+                
+                // Réinitialiser manuellement les interfaces modifiées
                 updateVolumeTracker();
+                const gammesSliders = document.querySelectorAll('input[name^="pctGamme"]');
+                gammesSliders.forEach(slider => {
+                    slider.value = 0;
+                    updateGammesTotal(slider);
+                });
+                updateMecanisationLabel(50);
                 
                 msg.innerHTML = '<i data-lucide="check-circle" class="inline w-6 h-6 mb-1"></i> Transmis avec succès !';
                 msg.className = "text-green-800 font-oswald uppercase mt-6 p-4 bg-green-100 rounded-xl border-2 border-green-500";
