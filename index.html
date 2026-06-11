@@ -86,18 +86,21 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
+    <!-- HEADER AVEC LOGO -->
     <header class="bg-white shadow-sm sticky top-0 z-50 border-b-4 border-dixLight">
         <div class="bg-dixDark text-white py-6">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-4">
-                <i data-lucide="tractor" class="w-10 h-10 text-dixLight"></i>
-                <div>
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 text-center md:text-left">
+                <!-- Espace Logo Nîmes Métropole -->
+                <img src="nimesmetropole.png" alt="Logo Nîmes Métropole" class="h-16 md:h-20 w-auto bg-white p-2 rounded-xl shadow-sm object-contain" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'#f3f4f6\'/><text x=\'50%\' y=\'50%\' fill=\'#9ca3af\' font-family=\'sans-serif\' font-size=\'12\' text-anchor=\'middle\' dy=\'.3em\'>LOGO NM</text></svg>';">
+                
+                <div class="mt-2 md:mt-0">
                     <h1 class="text-2xl md:text-3xl text-white tracking-widest leading-none font-oswald uppercase">Étude Légumerie Territoriale</h1>
-                    <p class="text-sm text-green-100 font-georgia italic mt-1">Projet Alimentaire Territorial - Nîmes Métropole</p>
+                    <p class="text-sm text-green-100 font-georgia italic mt-2">Projet Alimentaire Territorial - Nîmes Métropole</p>
                 </div>
             </div>
         </div>
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex items-center space-x-8 pt-4 pb-0 overflow-x-auto">
+            <nav class="flex items-center space-x-8 pt-4 pb-0 overflow-x-auto justify-center md:justify-start">
                 <button onclick="switchTab('enquete')" id="tab-enquete" class="nav-tab active text-lg flex items-center gap-2 whitespace-nowrap">
                     <i data-lucide="clipboard-list" class="w-5 h-5"></i> L'Enquête Besoins
                 </button>
@@ -544,11 +547,32 @@
 
     </main>
 
+    <!-- BANDEAU PARTENAIRES -->
+    <section class="bg-white py-8 border-t border-gray-200 mt-auto">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-90">
+                <img src="nimesmetropole.png" alt="Logo Nîmes Métropole" class="h-16 w-auto object-contain" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'50\'><rect width=\'150\' height=\'50\' fill=\'#f3f4f6\'/><text x=\'50%\' y=\'50%\' fill=\'#9ca3af\' font-family=\'sans-serif\' font-size=\'14\' text-anchor=\'middle\' dy=\'.3em\'>LOGO N.M.</text></svg>';">
+                <img src="dix.png" alt="Logo DIX" class="h-12 w-auto object-contain" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'150\' height=\'50\'><rect width=\'150\' height=\'50\' fill=\'#f3f4f6\'/><text x=\'50%\' y=\'50%\' fill=\'#9ca3af\' font-family=\'sans-serif\' font-size=\'14\' text-anchor=\'middle\' dy=\'.3em\'>LOGO DIX</text></svg>';">
+            </div>
+        </div>
+    </section>
+
     <!-- FOOTER -->
-    <footer class="bg-dixDark text-white py-8 mt-auto border-t-4 border-dixLight">
-        <div class="max-w-5xl mx-auto px-4 text-center text-sm opacity-80">
-            <p class="font-oswald uppercase tracking-widest mb-2">Projet Alimentaire Territorial - Nîmes Métropole</p>
-            <p class="font-georgia text-xs">Démarche accompagnée par DIX Autrement</p>
+    <footer class="bg-dixDark text-white py-8 border-t-4 border-dixLight">
+        <div class="max-w-5xl mx-auto px-4 text-center text-sm opacity-80 flex flex-col gap-4">
+            <div>
+                <p class="font-oswald uppercase tracking-widest mb-1 text-lg">Projet Alimentaire Territorial - Nîmes Métropole</p>
+                <p class="font-georgia text-sm">Démarche accompagnée par la coopérative DIX</p>
+            </div>
+            
+            <div class="border-t border-white/20 pt-4 mt-2">
+                <p class="font-oswald uppercase text-xs mb-1">DIX - LA COOPÉRATIVE DES TRANSITIONS AGRICOLES ET ALIMENTAIRES DES TERRITOIRES</p>
+                <p class="font-georgia text-[10px] text-gray-300 leading-relaxed">
+                    SCOP SAS à capital variable | Siège social : 6 Grande Rue, 77320 Chartronges | 830 937 710 R.C.S. Meaux <br>
+                    N° TVA Intracommunautaire : FR 54 830 937 710 | <a href="mailto:contact@dix.coop" class="hover:text-white transition-colors">contact@dix.coop</a> | <a href="https://www.dix.coop" target="_blank" class="hover:text-white transition-colors">www.dix.coop</a><br>
+                    Contact projet : <a href="mailto:contact@dix-autrement.fr" class="hover:text-white transition-colors font-bold">contact@dix-autrement.fr</a>
+                </p>
+            </div>
         </div>
     </footer>
 
