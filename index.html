@@ -691,4 +691,117 @@
                     </div>
                 </td>
                 <td class="p-3 border-b border-gray-100 text-center">
-                    <input type="checkbox" name="bio_${
+                    <input type="checkbox" name="bio_${item.id}" value="Oui" class="w-5 h-5 accent-dixLight cursor-pointer">
+                </td>
+                <td class="p-3 border-b border-gray-100 text-center">
+                    <input type="checkbox" name="egalim_${item.id}" value="Oui" class="w-5 h-5 accent-dixLight cursor-pointer">
+                </td>
+                <td class="p-3 border-b border-gray-100 text-center">
+                    ${isDynamic 
+                        ? `<button type="button" onclick="this.closest('tr').remove()" class="text-gray-400 hover:text-red-500 transition-colors" title="Supprimer"><i data-lucide="trash-2" class="w-5 h-5"></i></button>`
+                        : ``
+                    }
+                </td>
+            `;
+        }
+
+        // Initialisation de la grille de base (Tableau)
+        function buildTable() {
+            const tbody = document.getElementById('table-legumes-body');
+            tbody.innerHTML = ''; // Sécurité
+            
+            listLegumes.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                tr.innerHTML = createTableRowHtml(item, false);
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        let dynCounter = 1;
+        function addTableLegumeRow() {
+            const tbody = document.getElementById('table-legumes-body');
+            const cId = `dyn_leg_${dynCounter++}`;
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-gray-50 transition-colors bg-blue-50/30"; // Fond légèrement bleuté pour les ajouts dynamiques
+            
+            tr.innerHTML = createTableRowHtml({id: cId, name: '', icon: 'dyn_default'}, true);
+            tbody.appendChild(tr);
+            lucide.createIcons();
+            
+            // Focus automatique sur le nouveau champ "Nom"
+            setTimeout(() => { tr.querySelector('input[type="text"]').focus(); }, 50);
+        }
+
+        // Form Submit
+        async function submitData(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const msg = document.getElementById('formMessage');
+            
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin w-6 h-6"></i> Envoi en cours...';
+            lucide.createIcons();
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+            msg.classList.add('hidden');
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const dataObj = Object.fromEntries(formData.entries());
+            
+            // Concaténation des checkboxes
+            dataObj.formeAchats = formData.getAll('formeAchats').join(', ');
+            dataObj.equipements = formData.getAll('equipements').join(', ');
+            dataObj.determinants4G = formData.getAll('determinants4G').join(', ');
+
+            // Note: Les données du tableau (vol_pdt, decoupe_pdt, bio_pdt...) 
+            // sont automatiquement capturées par le FormData et ajoutées à dataObj.
+
+            try {
+                // Simulation envoi API
+                await new Promise(r => setTimeout(r, 1200));
+
+                form.reset();
+                document.getElementById('contact-box').classList.add('hidden');
+                document.getElementById('bloc_prestataire').classList.add('hidden');
+                
+                // Nettoyer les lignes ajoutées dynamiquement
+                const tbody = document.getElementById('table-legumes-body');
+                Array.from(tbody.children).forEach(tr => {
+                    if (tr.querySelector('button[title="Supprimer"]')) {
+                        tr.remove();
+                    }
+                });
+                
+                // Reset Sliders UI
+                document.getElementById('valSurfFroid').innerText = '10 m²';
+                document.getElementById('sliderValueEquipe').innerText = 'Niveau 3';
+                document.getElementById('sliderValueAutonomie').innerText = '5 / 10';
+                document.getElementById('sliderValueEngagement').innerText = '50 %';
+                
+                msg.innerHTML = '<i data-lucide="check-circle" class="inline w-6 h-6 mr-2 mb-1"></i> Vos informations ont été transmises avec succès. Merci !';
+                msg.className = "text-green-800 text-base font-oswald uppercase tracking-wide text-center mt-6 p-4 bg-green-100 rounded-xl border-2 border-green-500 shadow-sm";
+                msg.classList.remove('hidden');
+                lucide.createIcons();
+
+            } catch (error) {
+                msg.innerHTML = '<i data-lucide="alert-circle" class="inline w-6 h-6 mr-2 mb-1"></i> Erreur de connexion.';
+                msg.className = "text-red-800 text-base font-oswald uppercase tracking-wide text-center mt-6 p-4 bg-red-100 rounded-xl border-2 border-red-500 shadow-sm";
+                msg.classList.remove('hidden');
+                lucide.createIcons();
+            } finally {
+                btn.innerHTML = '<i data-lucide="send" class="w-6 h-6"></i> Transmettre mes informations';
+                lucide.createIcons();
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        // Démarrage
+        window.addEventListener('DOMContentLoaded', () => {
+            buildTable();
+        });
+    </script>
+</body>
+</html>
