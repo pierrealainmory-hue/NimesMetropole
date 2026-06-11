@@ -1035,19 +1035,24 @@
 
             const form = event.target;
             const formData = new FormData(form);
-            const dataObj = Object.fromEntries(formData.entries());
             
-            // Consolidation cases à cocher multiples
-            dataObj.equipements = formData.getAll('equipements').join(', ');
-            dataObj.determinants4G = formData.getAll('determinants4G').join(', ');
+            // Consolider les cases à cocher multiples en texte
+            formData.set('equipements', formData.getAll('equipements').join(', '));
+            formData.set('determinants4G', formData.getAll('determinants4G').join(', '));
+
+            // Conversion des données au format URL pour éviter tout blocage de sécurité (CORS) Google
+            const searchParams = new URLSearchParams();
+            for (const [key, value] of formData.entries()) {
+                searchParams.append(key, value);
+            }
 
             try {
                 if (GAS_WEB_APP_URL !== "VOTRE_URL_GOOGLE_APPS_SCRIPT_ICI") {
                     await fetch(GAS_WEB_APP_URL, {
                         method: 'POST',
                         mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify(dataObj)
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: searchParams
                     });
                 } else {
                     await new Promise(r => setTimeout(r, 1000));
