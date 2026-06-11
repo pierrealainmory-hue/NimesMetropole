@@ -246,15 +246,15 @@
                                 </div>
 
                                 <!-- Jauge Totale Gammes -->
-                                <div id="tracker-gammes" class="mt-6 p-4 rounded-xl border border-red-200 bg-red-50 text-center transition-colors">
+                                <div id="tracker-gammes" class="mt-6 p-4 rounded-xl border border-amber-200 bg-amber-50 text-center transition-colors">
                                     <span class="font-oswald uppercase tracking-widest text-sm text-gray-500 block mb-1">Total de votre répartition</span>
-                                    <div class="text-2xl font-bold font-georgia text-red-600 mb-2">
+                                    <div class="text-2xl font-bold font-georgia text-amber-600 mb-2">
                                         <span id="totalGammesValue">0</span> %
                                     </div>
                                     <div class="w-full bg-gray-200 rounded-full h-2">
-                                        <div id="gammes-progress-bar" class="bg-red-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                        <div id="gammes-progress-bar" class="bg-amber-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
                                     </div>
-                                    <p id="tracker-gammes-msg" class="text-xs text-red-700 mt-2 font-bold italic">Veuillez ajuster pour atteindre exactement 100%.</p>
+                                    <p id="tracker-gammes-msg" class="text-xs text-amber-700 mt-2 font-bold italic">Il manque 100% pour valider la répartition.</p>
                                 </div>
                             </div>
                         </div>
@@ -720,22 +720,39 @@
             }
         }
 
-        // JAUGE POUR LES GAMMES 100%
+        // JAUGE POUR LES GAMMES 100% (Verrouillage Automatique)
         function updateGammesTotal(elementChanged) {
-            const g1 = parseInt(document.querySelector('input[name="pctGamme1"]').value) || 0;
-            const g2 = parseInt(document.querySelector('input[name="pctGamme2"]').value) || 0;
-            const g3 = parseInt(document.querySelector('input[name="pctGamme3"]').value) || 0;
-            const g4 = parseInt(document.querySelector('input[name="pctGamme4"]').value) || 0;
-            const g5 = parseInt(document.querySelector('input[name="pctGamme5"]').value) || 0;
+            const inputs = [
+                document.querySelector('input[name="pctGamme1"]'),
+                document.querySelector('input[name="pctGamme2"]'),
+                document.querySelector('input[name="pctGamme3"]'),
+                document.querySelector('input[name="pctGamme4"]'),
+                document.querySelector('input[name="pctGamme5"]')
+            ];
+
+            // Si un curseur est en train d'être bougé, on limite sa valeur max
+            if (elementChanged) {
+                let sumOthers = 0;
+                inputs.forEach(inp => {
+                    if (inp !== elementChanged) sumOthers += parseInt(inp.value) || 0;
+                });
+                
+                let maxAllowed = 100 - sumOthers;
+                if (parseInt(elementChanged.value) > maxAllowed) {
+                    elementChanged.value = maxAllowed; // Bloque le curseur physiquement
+                }
+            }
             
-            const total = g1 + g2 + g3 + g4 + g5;
+            // Recalcul du total après ajustement
+            let total = 0;
+            inputs.forEach(inp => total += parseInt(inp.value) || 0);
             
             // Mise à jour des valeurs textuelles des curseurs
-            document.getElementById('valGamme1').innerText = g1 + '%';
-            document.getElementById('valGamme2').innerText = g2 + '%';
-            document.getElementById('valGamme3').innerText = g3 + '%';
-            document.getElementById('valGamme4').innerText = g4 + '%';
-            document.getElementById('valGamme5').innerText = g5 + '%';
+            document.getElementById('valGamme1').innerText = inputs[0].value + '%';
+            document.getElementById('valGamme2').innerText = inputs[1].value + '%';
+            document.getElementById('valGamme3').innerText = inputs[2].value + '%';
+            document.getElementById('valGamme4').innerText = inputs[3].value + '%';
+            document.getElementById('valGamme5').innerText = inputs[4].value + '%';
 
             // Mise à jour de la barre de progression globale
             document.getElementById('totalGammesValue').innerText = total;
@@ -743,8 +760,7 @@
             const pBar = document.getElementById('gammes-progress-bar');
             const msg = document.getElementById('tracker-gammes-msg');
 
-            let widthPct = total > 100 ? 100 : total;
-            pBar.style.width = widthPct + '%';
+            pBar.style.width = total + '%';
 
             if (total === 100) {
                 tracker.className = "mt-6 p-4 rounded-xl border transition-colors border-green-200 bg-green-50 text-center";
@@ -752,12 +768,6 @@
                 pBar.className = "bg-green-500 h-2 rounded-full transition-all duration-300";
                 msg.className = "text-xs text-green-700 mt-2 font-bold italic";
                 msg.innerText = "Parfait, la répartition atteint 100%.";
-            } else if (total > 100) {
-                tracker.className = "mt-6 p-4 rounded-xl border transition-colors border-red-200 bg-red-50 text-center";
-                document.getElementById('totalGammesValue').className = "text-2xl font-bold font-georgia text-red-600 mb-2";
-                pBar.className = "bg-red-500 h-2 rounded-full transition-all duration-300";
-                msg.className = "text-xs text-red-700 mt-2 font-bold italic";
-                msg.innerHTML = `Le total est dépassé de ${total - 100}%. Veuillez réduire une jauge.`;
             } else {
                 tracker.className = "mt-6 p-4 rounded-xl border transition-colors border-amber-200 bg-amber-50 text-center";
                 document.getElementById('totalGammesValue').className = "text-2xl font-bold font-georgia text-amber-600 mb-2";
@@ -775,7 +785,6 @@
             else if (num === 100) label.innerText = "100% Mécanisé";
             else label.innerText = (100 - num) + "% Manuel / " + num + "% Mécanisé";
         }
-
 
         function getThemeStyles(themeValue) {
             const val = (themeValue || '').toLowerCase();
