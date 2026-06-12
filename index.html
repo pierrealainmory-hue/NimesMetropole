@@ -1014,7 +1014,7 @@
             lucide.createIcons();
         }
 
-        // ENVOI (FETCH)
+       // ENVOI (FETCH)
         async function submitData(event) {
             event.preventDefault();
             
@@ -1040,11 +1040,19 @@
             formData.set('equipements', formData.getAll('equipements').join(', '));
             formData.set('determinants4G', formData.getAll('determinants4G').join(', '));
 
+            // --- NOUVEAU : CAPTURE DE L'ORDRE EXACT DU FORMULAIRE (DE HAUT EN BAS) ---
+            const formElements = Array.from(form.elements).filter(el => el.name);
+            const orderedKeys = [...new Set(formElements.map(el => el.name))];
+
             // Conversion des données au format URL pour éviter tout blocage de sécurité (CORS) Google
             const searchParams = new URLSearchParams();
             for (const [key, value] of formData.entries()) {
                 searchParams.append(key, value);
             }
+            
+            // On glisse l'ordre exact de la page web dans l'envoi
+            searchParams.append('_formOrder', orderedKeys.join(','));
+            // --------------------------------------------------------------------------
 
             try {
                 if (GAS_WEB_APP_URL !== "VOTRE_URL_GOOGLE_APPS_SCRIPT_ICI") {
