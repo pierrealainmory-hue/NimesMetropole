@@ -553,6 +553,7 @@
                     <button type="submit" class="btn-primary w-full md:w-auto text-xl flex items-center justify-center gap-3" id="submitBtn">
                         <i data-lucide="send" class="w-6 h-6"></i> Transmettre mes informations
                     </button>
+                    <p id="saveIndicator" class="text-xs text-gray-400 mt-3 text-center italic hidden"><i data-lucide="save" class="inline w-3 h-3 mr-1"></i>Brouillon sauvegardé localement</p>
                     <p id="formMessage" class="hidden text-sm font-bold mt-4"></p>
                 </div>
             </form>
@@ -634,7 +635,7 @@
 
     <script>
         // ⚠️ ATTENTION : Mettez ici l'URL générée par Google Apps Script
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSzq7-Oyl9xMv8ZWIbpc8XAvEqv7b_-Fnun8J7AI62cBJzv6ArNF5rYgmwOiDU0ISf/exec";
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyCJ3qTOjX_P9AHSi7veCVGBCgnGJ5IPF-jlVqGcFXfUn1gjWqZY5EDG6dx5twwMtMC/exec";
         
         let initiativesLoaded = false;
         let allInitiatives = [];
@@ -730,7 +731,6 @@
                 document.querySelector('input[name="pctGamme5"]')
             ];
 
-            // Si un curseur est en train d'être bougé, on limite sa valeur max
             if (elementChanged) {
                 let sumOthers = 0;
                 inputs.forEach(inp => {
@@ -739,22 +739,19 @@
                 
                 let maxAllowed = 100 - sumOthers;
                 if (parseInt(elementChanged.value) > maxAllowed) {
-                    elementChanged.value = maxAllowed; // Bloque le curseur physiquement
+                    elementChanged.value = maxAllowed; 
                 }
             }
             
-            // Recalcul du total après ajustement
             let total = 0;
             inputs.forEach(inp => total += parseInt(inp.value) || 0);
             
-            // Mise à jour des valeurs textuelles des curseurs
             document.getElementById('valGamme1').innerText = inputs[0].value + '%';
             document.getElementById('valGamme2').innerText = inputs[1].value + '%';
             document.getElementById('valGamme3').innerText = inputs[2].value + '%';
             document.getElementById('valGamme4').innerText = inputs[3].value + '%';
             document.getElementById('valGamme5').innerText = inputs[4].value + '%';
 
-            // Mise à jour de la barre de progression globale
             document.getElementById('totalGammesValue').innerText = total;
             const tracker = document.getElementById('tracker-gammes');
             const pBar = document.getElementById('gammes-progress-bar');
@@ -1014,7 +1011,85 @@
             lucide.createIcons();
         }
 
-       // ENVOI (FETCH)
+        // --- GESTION DU BROUILLON (LOCALSTORAGE) ---
+        function saveDraft() {
+            const form = document.getElementById('enqueteForm');
+            const data = {};
+            Array.from(form.elements).forEach(el => {
+                if (el.name) {
+                    if (el.type === 'checkbox') {
+                        if (!data[el.name]) data[el.name] = [];
+                        if (el.checked) data[el.name].push(el.value);
+                    } else if (el.type === 'radio') {
+                        if (el.checked) data[el.name] = el.value;
+                    } else {
+                        data[el.name] = el.value;
+                    }
+                }
+            });
+            localStorage.setItem('nimesEnqueteDraft', JSON.stringify(data));
+            
+            const indicator = document.getElementById('saveIndicator');
+            if (indicator) {
+                indicator.classList.remove('hidden');
+            }
+        }
+
+        function restoreDraft() {
+            const saved = localStorage.getItem('nimesEnqueteDraft');
+            if (!saved) return;
+            try {
+                const data = JSON.parse(saved);
+                const form = document.getElementById('enqueteForm');
+                
+                // Recréer les lignes de légumes personnalisés s'il y en a
+                const dynKeys = Object.keys(data).filter(k => k.startsWith('nom_dyn_leg_'));
+                dynKeys.forEach(k => {
+                    if (!form.elements[k]) addTableLegumeRow();
+                });
+
+                Array.from(form.elements).forEach(el => {
+                    if (el.name && data[el.name] !== undefined) {
+                        if (el.type === 'checkbox') {
+                            el.checked = data[el.name].includes(el.value);
+                        } else if (el.type === 'radio') {
+                            el.checked = (data[el.name] === el.value);
+                        } else {
+                            el.value = data[el.name];
+                        }
+                    }
+                });
+
+                // Rafraichir l'interface visuelle après le chargement
+                if (data['typeEtablissement']) toggleTypeEtablissement(data['typeEtablissement']);
+                if (data['modeGestion']) togglePrestataire(data['modeGestion']);
+                if (data['equipements']) toggleEquipementAutre(data['equipements'].includes('Autre'));
+                if (data['determinants4G']) toggleDeterminantsAutre(data['determinants4G'].includes('Autre'));
+                if (data['conditionTop1']) toggleConditionAutre({value: data['conditionTop1']}, 'precisionConditionTop1');
+                if (data['conditionTop2']) toggleConditionAutre({value: data['conditionTop2']}, 'precisionConditionTop2');
+                if (data['conditionTop3']) toggleConditionAutre({value: data['conditionTop3']}, 'precisionConditionTop3');
+                
+                if (data['surfFroidPositif']) document.getElementById('valSurfFroid').innerText = data['surfFroidPositif'] + ' m²';
+                if (data['interetEquipe']) document.getElementById('sliderValueEquipe').innerText = 'Niveau ' + data['interetEquipe'];
+                if (data['autonomieAchats']) document.getElementById('sliderValueAutonomie').innerText = data['autonomieAchats'] + ' / 10';
+                if (data['probabiliteEngagement']) document.getElementById('sliderValueEngagement').innerText = data['probabiliteEngagement'] + ' %';
+                if (data['curseurMecanisation']) updateMecanisationLabel(data['curseurMecanisation']);
+                
+                if (data['entretien']) {
+                    const cb = document.getElementById('contact-box');
+                    if (data['entretien'] === 'Oui') cb.classList.remove('hidden');
+                    else cb.classList.add('hidden');
+                }
+
+                updateGammesTotal(null);
+                updateVolumeTracker();
+
+            } catch(e) {
+                console.error("Erreur lors de la restauration du brouillon", e);
+            }
+        }
+
+        // ENVOI (FETCH)
         async function submitData(event) {
             event.preventDefault();
             
@@ -1066,8 +1141,12 @@
                     await new Promise(r => setTimeout(r, 1000));
                 }
 
+                // Une fois envoyé, on vide le formulaire et on efface la sauvegarde locale !
                 form.reset();
+                localStorage.removeItem('nimesEnqueteDraft');
+                
                 initiativesLoaded = false; 
+                document.getElementById('saveIndicator').classList.add('hidden');
                 
                 // Réinitialiser manuellement les interfaces modifiées
                 updateVolumeTracker();
@@ -1094,7 +1173,15 @@
             }
         }
 
-        window.addEventListener('DOMContentLoaded', buildTable);
+        window.addEventListener('DOMContentLoaded', () => {
+            buildTable();
+            restoreDraft();
+            
+            // Activer la sauvegarde automatique à chaque changement ou frappe
+            const form = document.getElementById('enqueteForm');
+            form.addEventListener('input', saveDraft);
+            form.addEventListener('change', saveDraft);
+        });
     </script>
 </body>
 </html>
