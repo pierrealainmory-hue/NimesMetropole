@@ -37,6 +37,9 @@
     </script>
 
     <style>
+        /* Défilement fluide natif pour Edge, Chrome et Firefox */
+        html { scroll-behavior: smooth; }
+        
         /* Styles de base en CSS standard pour garantir l'affichage partout */
         body { background-color: #f9fafb; color: #1f2937; font-family: 'Georgia', serif; }
         h1, h2, h3, h4, h5, h6, .font-oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.025em; color: #405F59; }
@@ -63,10 +66,14 @@
         @media (min-width: 768px) { .masonry { column-count: 2; } }
         .masonry-item { break-inside: avoid; margin-bottom: 1.5rem; }
 
-        /* Sliders Simples */
-        input[type="range"].single-slider { -webkit-appearance: none; width: 100%; height: 8px; background: #e2e8f0; border-radius: 5px; outline: none; margin-top: 10px; }
+        /* Sliders Simples - Compatibilité multi-navigateurs renforcée */
+        input[type="range"].single-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 8px; background: #e2e8f0; border-radius: 5px; outline: none; margin-top: 10px; }
+        /* Chrome, Edge, Safari */
         input[type="range"].single-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%; cursor: pointer; transition: transform 0.1s; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); background: #549e39; }
         input[type="range"].single-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+        /* Firefox */
+        input[type="range"].single-slider::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; transition: transform 0.1s; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); background: #549e39; border-width: 2px;}
+        input[type="range"].single-slider::-moz-range-thumb:hover { transform: scale(1.15); }
 
         /* Animations */
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
@@ -640,8 +647,6 @@
         let initiativesLoaded = false;
         let allInitiatives = [];
 
-        lucide.createIcons();
-
         // UI Alert function
         function customAlert(message) {
             document.getElementById('custom-alert-message').innerText = message;
@@ -998,7 +1003,6 @@
                 tr.innerHTML = createTableRowHtml(item, false);
                 tbody.appendChild(tr);
             });
-            lucide.createIcons();
         }
 
         let dynCounter = 1;
@@ -1173,14 +1177,18 @@
             }
         }
 
+        // Consolidation du chargement initial pour garantir la compatibilité multi-navigateurs
         window.addEventListener('DOMContentLoaded', () => {
             buildTable();
             restoreDraft();
+            lucide.createIcons();
             
             // Activer la sauvegarde automatique à chaque changement ou frappe
             const form = document.getElementById('enqueteForm');
-            form.addEventListener('input', saveDraft);
-            form.addEventListener('change', saveDraft);
+            if (form) {
+                form.addEventListener('input', saveDraft);
+                form.addEventListener('change', saveDraft);
+            }
         });
     </script>
 </body>
